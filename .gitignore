@@ -1,0 +1,6 @@
+/.vagrant
+/.vscode
+/docker/docker-compose.*.yml
+/docker/key-file
+/docker/mongo-scripts/replicaset-init.js
+/docker/mongo-scripts/replicaset-add-additional.js

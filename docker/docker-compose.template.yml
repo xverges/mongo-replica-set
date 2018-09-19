@@ -1,0 +1,23 @@
+mongo:
+  image : "mongo:3.4.4"
+  expose :
+    - 27017
+  ports:
+    - 27017:27017
+  volumes:
+    - /vagrant/docker/mongo-init:/docker-entrypoint-initdb.d
+    - /vagrant/docker/mongo-scripts:/mongo-scripts
+
+    # Having the data folder in the host is problematic because of folder permissions
+    # I have not found a way to properly run mongodb as vagrant:vagrant (1000:1000)
+    # - /vagrant/data/${HOSTNAME}:/data/db
+    - /home/vagrant/mongo-data:/data/db
+    - /home/vagrant/mongo-backup:/mongo-backup
+    - /home/vagrant/mongo-secrets:/mongo-secrets
+
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: ${ROOT_USER}
+    MONGO_INITDB_ROOT_PASSWORD: ${ROOT_PASSWORD}
+
+  command: mongod --keyFile /mongo-secrets/key-file ${REPLICA_SET_PARAM}
+
