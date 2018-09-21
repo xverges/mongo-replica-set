@@ -196,3 +196,15 @@ Facility "VirtualBox System Service": active/running (last update: 2018/09/18 19
 Facility "Seamless Mode": not active (last update: 2018/09/18 19:17:03 UTC)
 Facility "Graphics Mode": not active (last update: 2018/09/18 19:17:03 UTC)
 ```
+
+## Connecting to the replica set from a proper network host
+
+The vagrant boxes see each other, and there we can connect to mongo specifying that we are
+connecring to a replica set:
+
+```
+MongoClient(url_to_local, replicaset=replicaset_name, read_preference=ReadPreference.NEAREST)
+```
+
+We can read and write using this client, from both the box that has the primary and the box that
+has the secundary.
