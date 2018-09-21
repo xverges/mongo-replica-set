@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import pprint
 import sys
 
 from lib import ReplicaServer
@@ -14,7 +13,7 @@ def main(argv=None):
         print "Bad params " + str(argv)
     else:
         server = argv[1].upper()
-        pprint.pprint(ReplicaServer(server).read())
+        ReplicaServer(server).update_db('db_2')
 
 if __name__ == "__main__":
     main()

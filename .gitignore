@@ -4,3 +4,5 @@
 /docker/key-file
 /docker/mongo-scripts/replicaset-init.js
 /docker/mongo-scripts/replicaset-add-additional.js
+get-pip.py
+*.pyc

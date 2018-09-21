@@ -13,10 +13,10 @@ class MongoServerConnection(object):
     def __init__(self, name):
         name = name.upper()
         self.name = name
-        self.ip = 'localhost'
-        self.port = os.environ[name + '_PORT']
         self.user = os.environ['ROOT_USER']
         self.password = os.environ['ROOT_PASSWORD']
+        self.ip = None
+        self.port = None
 
     def url(self):
         return "mongodb://{0}:{1}@{2}:{3}/".format(
@@ -64,10 +64,22 @@ class MongoServerConnection(object):
 
 
 class StandaloneServer(MongoServerConnection):
+
+    def __init__(self, name):
+        MongoServerConnection.__init__(self, name)
+        self.ip = 'localhost'
+        self.port = os.environ[name + '_PORT']
+
     def client(self):
         return MongoClient(self.url())
 
 class ReplicaServer(MongoServerConnection):
+
+    def __init__(self, name):
+        MongoServerConnection.__init__(self, name)
+        self.ip = 'localhost'
+        self.port = '27017'
+
     def client(self):
         replicaset = os.environ['REPLICASET_NAME']
         return MongoClient(self.url(), replicaset=replicaset, read_preference=ReadPreference.NEAREST)
