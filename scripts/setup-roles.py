@@ -3,7 +3,7 @@
 
 import sys
 
-from lib import StandaloneServer
+from lib import StandaloneAdmin
 
 def main(argv=None):
 
@@ -12,8 +12,9 @@ def main(argv=None):
     if len(argv) != 2:
         print "Bad params " + str(argv)
     else:
+        print "Setting up roles..."
         server = argv[1].upper()
-        StandaloneServer(server).update_db('db_2')
+        StandaloneAdmin(server).setup_roles()
 
 if __name__ == "__main__":
     main()

@@ -200,7 +200,7 @@ Facility "Graphics Mode": not active (last update: 2018/09/18 19:17:03 UTC)
 ## Connecting to the replica set from a proper network host
 
 The vagrant boxes see each other, and there we can connect to mongo specifying that we are
-connecring to a replica set:
+connecting to a replica set:
 
 ```
 MongoClient(url_to_local, replicaset=replicaset_name, read_preference=ReadPreference.NEAREST)
@@ -208,3 +208,16 @@ MongoClient(url_to_local, replicaset=replicaset_name, read_preference=ReadPrefer
 
 We can read and write using this client, from both the box that has the primary and the box that
 has the secundary.
+
+## Working with proper credentials and with the local database
+
+So far the tests have been run using mongo root's credentials and regular databases. We now need
+to verify that we can work with less privileged credentials and with the local databases. We will
+
+- add a script that sets up the permissions to be able to use the local database
+- use non-root credentials to read and update the database and the replicaset
+
+The tests show that
+
+- the `local` database can be updated when using the secondary and no replicaset specification
+- the `local` database of the secondary WON'T be updated if we specify a replicaset.

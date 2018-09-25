@@ -4,6 +4,7 @@ reset_server () {
     vagrant ssh $1 -- "docker-compose -f /vagrant/docker/docker-compose.${1}.yml kill"
     vagrant ssh $1 -- "sudo rm -rf /home/vagrant/mongo-data"
     vagrant up --provision $1
+    python ./scripts/setup-roles.py $1
 }
 
 if [ $# -ne 1 ]; then
