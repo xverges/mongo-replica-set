@@ -9,7 +9,7 @@
   migrated into a replica set. The mongodb instances have root credentials setup with
   `MONGO_INITDB_ROOT_USERNAME` and additional accounts created with a script in
   `docker-entrypoint-initdb.d`.
-- Simplest target configuration: [primary, seconday and arbitrer](https://docs.mongodb.com/manual/core/replica-set-architecture-three-members/#primary-with-a-secondary-and-an-arbiter)
+- Simplest target configuration: [primary, secondary and arbitrer](https://docs.mongodb.com/manual/core/replica-set-architecture-three-members/#primary-with-a-secondary-and-an-arbiter)
 
 
 ## Vagrant environment to test
@@ -40,7 +40,7 @@ to [direnv](https://direnv.net/) and finally betting on [Pipenv: Python Developm
 Humans](https://github.com/pypa/pipenv). Thus, the project dependencies are tracked in `Pipfile`.
 
 
-## Doing. First (half) succesful attempt.
+## Doing. First (half) successful attempt.
 
 Get our python dependencies and the environment variables defined in `.env`.
 
@@ -112,9 +112,9 @@ And, all the previous commands in a single line to make trial-and-error faster:
  (mongo-replica-set-qvtM3FSm)$ ./scripts/reset-standalone.sh all && ./scripts/02-feed-standalone.py && ./scripts/backup.sh && ./scripts/restore.sh second 192.168.100.10 && ./scripts/reset-standalone.sh second && ./scripts/03-stop-standalone.sh && ./scripts/04-start-with-repl-param.sh 
  ```
 
-Initialise the replica set. This is done in the `replicaset-init.js`
+Initialize the replica set. This is done in the `replicaset-init.js`
 and `replicaset-add-additional.js`
-- It is important to pass the ip of `first`, beacuse, when I used
+- It is important to pass the ip of `first`, because, when I used
   `rs.initiate()` without params, the configuration for the primary member of the replica set
   pointed to an unreachable address, and `second` was unable to reach `first`.
 - Adding `second` as a second member in the config param of `rs.initiate()` also resulted in
@@ -130,13 +130,13 @@ and `replicaset-add-additional.js`
 The arbitrer has not been setup, but we can access both instances. Using the previous connection
 params, that do not specify anything related to the replicaset:
 - we can read from both instances
-- we can update the primary (that is repliacted to the secondary)
+- we can update the primary (that is replicated to the secondary)
 - we get a failure when updating the secondary (`pymongo.errors.NotMasterError: not master`)
 
 ## Networking issues
 
 When trying to use the `replicaset` param when creating `MongoClient`, I learned that my OSX host
-can not reach my VitualBox guests, or my guests reach the
+can not reach my VirtualBox guests, or my guests reach the
 [hostonly](https://blogs.oracle.com/scoter/networking-in-virtualbox-v2#Host-only) address where I
 expected my host to be. Lots of googling but nothing helped.
 
@@ -207,7 +207,7 @@ MongoClient(url_to_local, replicaset=replicaset_name, read_preference=ReadPrefer
 ```
 
 We can read and write using this client, from both the box that has the primary and the box that
-has the secundary.
+has the secondary.
 
 ## Working with proper credentials and with the local database
 
@@ -221,3 +221,22 @@ The tests show that
 
 - the `local` database can be updated when using the secondary and no replicaset specification
 - the `local` database of the secondary WON'T be updated if we specify a replicaset.
+
+## Wrap up
+
+- Migrate to `local` the databases that we don't want replicated
+- Modify the code to have different ways to create the `pymongo.MongoClient` if we are targeting
+  the `local` database or a database that we want replicated
+- Use `mongodump` to create a backup of the two instances
+- Use `mongorestore` to consolidate all the info in first
+- Stop the servers
+- Delete the data volume of the second server
+- Create and make available the shared key
+- Start the servers, specifying `--keyFile`, `--bind_ip` and `--replSet` params for the mongodb container
+- Run `rs.initiate()` on the first server
+- Wait for the first to be `PRIMARY` and then add the rest of servers: `rs.add()` and `rs.addArb()`
+- Modify and deploy the code that specifies that replicaset when creating a `pymongo.MongoClient` to be used for
+  databases that we want replicated  
+
+
+ 
