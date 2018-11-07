@@ -45,16 +45,14 @@ Humans](https://github.com/pypa/pipenv). Thus, the project dependencies are trac
 Get our python dependencies and the environment variables defined in `.env`.
 
 ```
-$ pinenv shell
+$ pipnenv shell
 (mongo-replica-set-qvtM3FSm)$
 ````
 
 Start the `first` and `second` vagrant boxes and their docker-compose (`vagrant destroy` +
 `vagrant up`). Requires installing docker inside the guests, getting the mongodb docker
 image... takes its time.
-```
-(mongo-replica-set-qvtM3FSm)$ ./scripts/01-start-standalone.sh
-```
+[<pre>(mongo-replica-set-qvtM3FSm)$ ./scripts/01-start-standalone.sh</pre>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/01-start-standalone.sh)
 
 Reset the boxes. Trial an error required getting to this step very often.
 - Stop the docker containers.
