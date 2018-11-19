@@ -1,6 +1,6 @@
 # Making-of: docker-based MongoDB replica-set migration from single instance
 
-https://github.com/xverges/mongo-replica-set
+[https://github.com/xverges/mongo-replica-set](https://github.com/xverges/mongo-replica-set)
 
 ## Initial situation
 
