@@ -1,5 +1,6 @@
 # Making-of: docker-based MongoDB replica-set migration from single instance
 
+https://github.com/xverges/mongo-replica-set
 
 ## Initial situation
 
@@ -51,8 +52,12 @@ $ pipnenv shell
 
 Start the `first` and `second` vagrant boxes and their docker-compose (`vagrant destroy` +
 `vagrant up`). Requires installing docker inside the guests, getting the mongodb docker
-image... takes its time.
-[<pre>(mongo-replica-set-qvtM3FSm)$ ./scripts/01-start-standalone.sh</pre>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/01-start-standalone.sh)
+image... takes its time (15 minute-ish on my home network). 
+
+```
+(mongo-replica-set-qvtM3FSm)$ ./scripts/01-start-standalone.sh
+```
+[<sup>01-start-standalone.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/01-start-standalone.sh)
 
 Reset the boxes. Trial an error required getting to this step very often.
 - Stop the docker containers.
@@ -60,10 +65,12 @@ Reset the boxes. Trial an error required getting to this step very often.
 - Recreate the docker containers (by re-provisioning the vagrant box again). The mongodb accounts
 specified in a script in `/docker-entrypoint-initdb.d` are created. These scripts won't be
 executed once the data folder is not empty.
+- Give the `xv_mongo_rw` account privileges to access collections in the `local` database. 
 
 ```
 (mongo-replica-set-qvtM3FSm)$ ./scripts/reset-standalone.sh all
 ```
+[<sup>reset-standalone.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/reset-standalone.sh)
 
 Create dbs, collections and documents in the `first` and `second` instances
 
@@ -71,6 +78,8 @@ Create dbs, collections and documents in the `first` and `second` instances
 (mongo-replica-set-qvtM3FSm)$ ./scripts/02-feed-standalone.py
 (mongo-replica-set-qvtM3FSm)$ ./scripts/read-standalone.py
 ```
+[<sup>02-feed-standalone.py</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/02-feed-standalone.py)
+[<sup>read-standalone.sh all</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/read-standalone.sh)
 
 Consolidate all the info on the `first`. 
 - `mongodump` + `mongorestore` to have everything in the first
@@ -82,6 +91,10 @@ Consolidate all the info on the `first`.
 (mongo-replica-set-qvtM3FSm)$ ./scripts/reset-standalone.sh second
 (mongo-replica-set-qvtM3FSm)$ ./scripts/read-standalone.py
 ```
+[<sup>backup.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/backup.sh)
+[<sup>restore.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/restore.sh)
+[<sup>reset-standalone.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/reset-standalone.sh)
+[<sup>read-standalone.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/read-standalone.sh)
 
 Restart the instances, now with the `--replSet` param set and allowing
 to have other hosts that `localhost` to connect to mongodb. I allowed
@@ -94,15 +107,48 @@ the scripts in `/docker-entrypoint-initdb.d` were not executed.
 (mongo-replica-set-qvtM3FSm)$ ./scripts/03-stop-standalone.sh
 (mongo-replica-set-qvtM3FSm)$ ./scripts/04-start-with-repl-param.sh
 ```
+[<sup>03-stop-standalone.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/03-stop-standalone.sh)
+[<sup>04-start-with-repl-param.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/04-start-with-repl-param.sh)
 
 The instances are not operative now. If we try to read them...
 
 ```
 (mongo-replica-set-qvtM3FSm)$ ./scripts/read-standalone.py
-Traceback (most recent call last):
-...
-pymongo.errors.OperationFailure: node is not in primary or recovering state
+(mongo-replica-set-qvtM3FSm) bash-3.2$ ./scripts/read-standalone.py
+----FIRST----
+node is not in primary or recovering state
+----SECOND----
+{'local': {'not_replicated': ()}}
 ```
+
+...and the reported error is on track:
+```
+(mongo-replica-set-qvtM3FSm) bash-3.2$ ./scripts/get-replicaset-status.sh
+Working with first... Mapped to the host port 27110
+MongoDB shell version v3.4.4
+connecting to: mongodb://127.0.0.1:27017
+MongoDB server version: 3.4.4
+{
+	"info" : "run rs.initiate(...) if not yet done for the set",
+	"ok" : 0,
+	"errmsg" : "no replset config has been received",
+	"code" : 94,
+	"codeName" : "NotYetInitialized"
+}
+Working with second... Mapped to the host port 27111
+MongoDB shell version v3.4.4
+connecting to: mongodb://127.0.0.1:27017
+MongoDB server version: 3.4.4
+{
+	"info" : "run rs.initiate(...) if not yet done for the set",
+	"ok" : 0,
+	"errmsg" : "no replset config has been received",
+	"code" : 94,
+	"codeName" : "NotYetInitialized"
+}
+```
+[<sup>get-replicaset-status.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/get-replicaset-status.sh)
+
 
 And, all the previous commands in a single line to make trial-and-error faster:
 
@@ -110,8 +156,8 @@ And, all the previous commands in a single line to make trial-and-error faster:
  (mongo-replica-set-qvtM3FSm)$ ./scripts/reset-standalone.sh all && ./scripts/02-feed-standalone.py && ./scripts/backup.sh && ./scripts/restore.sh second 192.168.100.10 && ./scripts/reset-standalone.sh second && ./scripts/03-stop-standalone.sh && ./scripts/04-start-with-repl-param.sh 
  ```
 
-Initialize the replica set. This is done in the `replicaset-init.js`
-and `replicaset-add-additional.js`
+Initialize the replica set. This is done in the [`replicaset-init.js`](https://github.com/xverges/mongo-replica-set/blob/master/docker/mongo-scripts/replicaset-init.template.js)
+and [`replicaset-add-additional.js`](https://github.com/xverges/mongo-replica-set/blob/master/docker/mongo-scripts/replicaset-add-additional.template.js)
 - It is important to pass the ip of `first`, because, when I used
   `rs.initiate()` without params, the configuration for the primary member of the replica set
   pointed to an unreachable address, and `second` was unable to reach `first`.
@@ -124,6 +170,7 @@ and `replicaset-add-additional.js`
 (mongo-replica-set-qvtM3FSm)$ ./scripts/05-init-replicaset.sh
 (mongo-replica-set-qvtM3FSm)$ ./scripts/read-standalone.py
 ```
+[<sup>05-init-replicaset.sh</sup>](https://github.com/xverges/mongo-replica-set/blob/master/scripts/05-init-replicaset.sh)
 
 The arbitrer has not been setup, but we can access both instances. Using the previous connection
 params, that do not specify anything related to the replicaset:

@@ -2,5 +2,7 @@
 
 
 for server in first second; do
-    vagrant ssh ${server} -- "docker-compose -f /vagrant/docker/docker-compose.${server}-repl.yml up -d"
+    cmd="docker-compose -f /vagrant/docker/docker-compose.${server}-repl.yml up -d && cat /vagrant/docker/docker-compose.${server}-repl.yml"
+    echo $cmd
+    vagrant ssh ${server} -- $cmd 
 done

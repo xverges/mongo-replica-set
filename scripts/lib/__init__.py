@@ -40,7 +40,13 @@ class MongoServerConnection(object):
                 collection = client[database_name][collection_name]
                 add_items(collection)
         collection = client['local']['not_replicated']
-        add_items(collection)
+        try:
+            add_items(collection)
+        except pymongo.errors.OperationFailure as err:
+            if "not authorized on local" in err.message:
+                print "Not authorized to add items to local collection"
+            else:
+                raise err
 
     def read(self):
         def read_collection(contents, database, collection):
